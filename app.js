@@ -160,7 +160,17 @@ function createNodeElement(nodeData, level) {
 // Interaction
 function selectNode(id) {
     selectedNodeId = id;
-    renderTree();
+    
+    // 트리 전체를 다시 그리지 않고, DOM 클래스만 업데이트 (더블클릭 버그 방지)
+    document.querySelectorAll('.node-content').forEach(el => {
+        if (el.dataset.id === id) {
+            el.classList.add('selected');
+        } else {
+            el.classList.remove('selected');
+        }
+    });
+    
+    updateControlsState();
 }
 
 function updateControlsState() {
@@ -296,8 +306,7 @@ function setupEventListeners() {
 
     // Canvas click to deselect
     treeContainer.addEventListener('click', () => {
-        selectedNodeId = null;
-        renderTree();
+        selectNode(null);
     });
 
     // Download PNG
