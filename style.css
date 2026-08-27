@@ -1,5 +1,7 @@
 :root {
-    --node-gap: 30px;
+    --node-gap-y: 30px;
+    --node-gap-x: 30px;
+    --tree-indent: 40px; /* L2 이하 세로 트리 고정 들여쓰기 간격 */
     --line-color: #bdc3c7;
     --line-width: 2px;
     
@@ -155,14 +157,13 @@ button.danger:hover {
     background: var(--bg-color);
     padding: 50px;
     display: flex;
-    justify-content: center;
-    align-items: flex-start;
+    align-items: flex-start; /* 가로 스크롤 잘림 현상 해결을 위해 justify-content: center 제거 */
 }
 
 .tree {
-    /* To allow panning if needed, but flex centered for now */
     padding: 20px;
     background: var(--bg-color); /* for clean image export */
+    margin: 0 auto; /* 중앙 정렬 유지하되 스크롤 가능하게 */
 }
 
 /* Node Styles */
@@ -195,7 +196,7 @@ button.danger:hover {
     outline-offset: 2px;
 }
 
-/* 레벨별 기본 색상은 JS에서 인라인 style 변수(var(--lX-bg))로 동적 할당됩니다. */
+/* ?덈꺼蹂?湲곕낯 ?됱긽? JS?먯꽌 ?몃씪??style 蹂??var(--lX-bg))濡??숈쟻 ?좊떦?⑸땲?? */
 
 /* --- Tree Layout --- */
 
@@ -211,7 +212,7 @@ button.danger:hover {
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    padding-top: var(--node-gap);
+    padding-top: var(--node-gap-y);
     position: relative;
 }
 
@@ -222,7 +223,7 @@ button.danger:hover {
     top: 0;
     left: 50%;
     width: var(--line-width);
-    height: var(--node-gap);
+    height: var(--node-gap-y);
     background-color: var(--line-color);
     transform: translateX(-50%);
 }
@@ -233,9 +234,10 @@ button.danger:hover {
 /* Level 1 Node Wrappers */
 .level-1-wrapper {
     position: relative;
-    padding: var(--node-gap) calc(var(--node-gap) / 2) 0;
+    padding: var(--node-gap-y) calc(var(--node-gap-x) / 2) 0;
     display: flex;
     flex-direction: column;
+    align-items: center; /* 텍스트 박스가 좌우로 찢어지는 현상 방지 */
 }
 
 /* Horizontal Spine */
@@ -247,18 +249,47 @@ button.danger:hover {
     right: 0;
     border-top: var(--line-width) solid var(--line-color);
 }
-.level-1-wrapper:first-child::before { left: 50%; }
-.level-1-wrapper:last-child::before { right: 50%; }
-.level-1-wrapper:first-child:last-child::before { display: none; }
-
-/* Dropdown to L1 node */
-.level-1-wrapper::after {
+/* 첫 번째/마지막 자식의 수평선을 노드 중앙에서 완벽하게 끊기 위한 마스킹(Masking) 기법 */
+/* 첫 번째 자식: 수직선(2px 두께)의 왼쪽 절반을 침범하지 않도록 right를 50% + 1px로 설정 */
+.level-1-wrapper:first-child .level-1-node::after {
     content: '';
     position: absolute;
-    top: 0;
+    top: calc(var(--node-gap-y) * -1 - 2px); /* border 2px 보정 */
+    right: calc(50% + 1px);
+    width: 5000px;
+    height: 4px;
+    background: var(--bg-color);
+}
+
+/* 마지막 자식: 수직선의 오른쪽 절반을 침범하지 않도록 left를 50% + 1px로 설정 */
+.level-1-wrapper:last-child .level-1-node::after {
+    content: '';
+    position: absolute;
+    top: calc(var(--node-gap-y) * -1 - 2px);
+    left: calc(50% + 1px);
+    width: 5000px;
+    height: 4px;
+    background: var(--bg-color);
+}
+
+/* 요소가 하나뿐일 때는 수평선을 완전히 숨김 */
+.level-1-wrapper:first-child:last-child::before { display: none; }
+
+/* L1 Node Top-down Connection */
+.tree-branch-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: relative;
+}
+
+.tree-branch-container > .level-1-node::before {
+    content: '';
+    position: absolute;
+    top: calc(var(--node-gap-y) * -1 - 2px); /* border 2px 오차 보정하여 수평선에 완벽히 닿게 함 */
     left: 50%;
     width: var(--line-width);
-    height: var(--node-gap);
+    height: calc(var(--node-gap-y) + 2px);
     background-color: var(--line-color);
     transform: translateX(-50%);
 }
@@ -267,15 +298,15 @@ button.danger:hover {
 .sub-container {
     display: flex;
     flex-direction: column;
-    margin-top: calc(var(--node-gap) / 2);
+    margin-top: calc(var(--node-gap-y) / 2);
     /* For L1, the sub-container starts under it */
 }
 
 /* Sub-level wrappers (L2, L3, ...) */
 .sub-wrapper {
     position: relative;
-    padding-left: var(--node-gap);
-    padding-bottom: calc(var(--node-gap) / 2);
+    padding-left: var(--tree-indent);
+    padding-bottom: calc(var(--node-gap-y) / 2);
     display: flex;
     flex-direction: column;
     align-items: flex-start; /* keep them left-aligned */
@@ -285,26 +316,25 @@ button.danger:hover {
 .sub-wrapper::before {
     content: '';
     position: absolute;
-    top: calc(var(--node-gap) * -0.5); /* reach up to parent bottom */
+    top: calc(var(--node-gap-y) * -0.5); /* reach up to parent bottom */
     bottom: 0;
-    left: calc(var(--node-gap) / 2);
+    left: 20px; /* 고정값으로 변경하여 부모 노드 안쪽에서 출발하도록 보장 */
     border-left: var(--line-width) solid var(--line-color);
 }
 
 /* If last child, stop vertical line at the horizontal branch */
 .sub-wrapper:last-child::before {
     bottom: auto;
-    height: calc(16px + var(--node-gap) * 0.5); /* rough estimate to reach the horizontal branch. 16px is approx half node height */
+    height: calc(16px + var(--node-gap-y) * 0.5); /* rough estimate to reach the horizontal branch. 16px is approx half node height */
 }
-/* If first child, it needs to connect slightly differently if parent is L1 */
-/* Actually, the top:-gap/2 handles reaching up */
 
 /* The horizontal branch */
 .sub-wrapper::after {
     content: '';
     position: absolute;
-    top: 16px; /* align with middle of node (node padding 8px + line height approx 16px = 32px height, half is 16px) */
-    left: calc(var(--node-gap) / 2);
-    width: calc(var(--node-gap) / 2);
+    top: 16px; /* align with middle of node */
+    left: 20px; /* 고정된 수직 선에서 출발 */
+    width: calc(var(--tree-indent) - 20px); /* 노드 왼쪽 끝까지 이어짐 */
     border-top: var(--line-width) solid var(--line-color);
 }
+

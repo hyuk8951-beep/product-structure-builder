@@ -27,7 +27,7 @@ let nodeCounter = Date.now(); // for unique IDs
 
 // DOM Elements
 const treeContainer = document.getElementById('tree-root');
-const gapSlider = document.getElementById('gap-slider');
+// (gapSlider 삭제됨)
 const nodeTextInput = document.getElementById('node-text');
 const nodeColorInput = document.getElementById('node-color');
 const btnClearColor = document.getElementById('btn-clear-color');
@@ -184,18 +184,38 @@ function createNodeElement(nodeData, level) {
         }
     });
 
-    wrapper.appendChild(content);
+    if (level === 1) {
+        // L1 전용 래퍼: 부모 라인 연결점과 자식 라인 연결점을 완벽히 정렬하기 위함
+        const branchContainer = document.createElement('div');
+        branchContainer.classList.add('tree-branch-container');
+        
+        // L1 노드를 구분하기 위한 클래스 추가 (::before 라인용)
+        content.classList.add('level-1-node');
+        branchContainer.appendChild(content);
+        
+        if (nodeData.children && nodeData.children.length > 0) {
+            const childrenContainer = document.createElement('div');
+            childrenContainer.classList.add('sub-container');
+            nodeData.children.forEach(child => {
+                childrenContainer.appendChild(createNodeElement(child, level + 1));
+            });
+            branchContainer.appendChild(childrenContainer);
+        }
+        wrapper.appendChild(branchContainer);
+    } else {
+        wrapper.appendChild(content);
 
-    // Children container
-    if (nodeData.children && nodeData.children.length > 0) {
-        const childrenContainer = document.createElement('div');
-        if (level === 0) childrenContainer.classList.add('level-1-container');
-        else childrenContainer.classList.add('sub-container');
+        // Children container
+        if (nodeData.children && nodeData.children.length > 0) {
+            const childrenContainer = document.createElement('div');
+            if (level === 0) childrenContainer.classList.add('level-1-container');
+            else childrenContainer.classList.add('sub-container');
 
-        nodeData.children.forEach(child => {
-            childrenContainer.appendChild(createNodeElement(child, level + 1));
-        });
-        wrapper.appendChild(childrenContainer);
+            nodeData.children.forEach(child => {
+                childrenContainer.appendChild(createNodeElement(child, level + 1));
+            });
+            wrapper.appendChild(childrenContainer);
+        }
     }
 
     return wrapper;
@@ -258,9 +278,16 @@ function updateControlsState() {
 
 // Event Listeners
 function setupEventListeners() {
-    // Gap slider
-    gapSlider.addEventListener('input', (e) => {
-        document.documentElement.style.setProperty('--node-gap', `${e.target.value}px`);
+    // Gap sliders
+    const gapSliderY = document.getElementById('gap-slider-y');
+    const gapSliderX = document.getElementById('gap-slider-x');
+    
+    gapSliderY.addEventListener('input', (e) => {
+        document.documentElement.style.setProperty('--node-gap-y', `${e.target.value}px`);
+    });
+    
+    gapSliderX.addEventListener('input', (e) => {
+        document.documentElement.style.setProperty('--node-gap-x', `${e.target.value}px`);
     });
 
     // Node Text
