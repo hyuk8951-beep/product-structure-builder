@@ -195,12 +195,7 @@ button.danger:hover {
     outline-offset: 2px;
 }
 
-/* Level Colors (defaults) */
-.node-wrapper[data-level="0"] > .node-content { background-color: var(--l0-bg); }
-.node-wrapper[data-level="1"] > .node-content { background-color: var(--l1-bg); }
-.node-wrapper[data-level="2"] > .node-content { background-color: var(--l2-bg); color: #333; }
-.node-wrapper[data-level="3"] > .node-content { background-color: var(--l3-bg); color: #333; }
-.node-wrapper[data-level="4"] > .node-content { background-color: #ecf0f1; color: #333; } /* L4+ fallback */
+/* 레벨별 기본 색상은 JS에서 인라인 style 변수(var(--lX-bg))로 동적 할당됩니다. */
 
 /* --- Tree Layout --- */
 

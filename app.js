@@ -38,23 +38,62 @@ const selectedNodeInfo = document.getElementById('selected-node-info');
 const btnDownload = document.getElementById('btn-download');
 const btnReset = document.getElementById('btn-reset');
 
-// Level Color Inputs
-const colorInputs = {
-    0: document.getElementById('color-l0'),
-    1: document.getElementById('color-l1'),
-    2: document.getElementById('color-l2'),
-    3: document.getElementById('color-l3'),
-};
-
 // Initialize
 function init() {
-    loadLevelColors();
     renderTree();
     setupEventListeners();
 }
 
 function saveTree() {
     localStorage.setItem('productTreeData', JSON.stringify(treeData));
+}
+
+function getMaxLevel(node) {
+    let max = node.level;
+    node.children.forEach(child => {
+        max = Math.max(max, getMaxLevel(child));
+    });
+    return max;
+}
+
+function renderLevelColorInputs() {
+    const maxLevel = Math.max(3, getMaxLevel(treeData)); // 최소 0~3단계는 표시
+    const container = document.getElementById('level-colors-container');
+    container.innerHTML = ''; 
+
+    for (let i = 0; i <= maxLevel; i++) {
+        const label = document.createElement('label');
+        label.textContent = i === 0 ? '0단계 (최상위): ' : `${i}단계: `;
+        
+        const input = document.createElement('input');
+        input.type = 'color';
+        input.id = `color-l${i}`;
+        input.dataset.level = i;
+        
+        // localStorage에서 색상 불러오기 또는 기본값
+        const savedColor = localStorage.getItem(`levelColor_${i}`);
+        if (savedColor) {
+            input.value = savedColor;
+        } else {
+            // 기본 색상 설정
+            if (i === 0) input.value = '#2d2d64';
+            else if (i === 1) input.value = '#9b82c8';
+            else if (i === 2) input.value = '#a5b1c2';
+            else input.value = '#d1d8e0'; // 3단계 이상 기본값
+        }
+        
+        // CSS 변수 즉시 업데이트
+        document.documentElement.style.setProperty(`--l${i}-bg`, input.value);
+        
+        input.addEventListener('input', (e) => {
+            const color = e.target.value;
+            document.documentElement.style.setProperty(`--l${i}-bg`, color);
+            localStorage.setItem(`levelColor_${i}`, color);
+        });
+        
+        label.appendChild(input);
+        container.appendChild(label);
+    }
 }
 
 // Tree Traversal Helpers
@@ -74,6 +113,7 @@ function findNode(id) {
 
 // Rendering
 function renderTree() {
+    renderLevelColorInputs(); // 단계 확장에 따라 색상 UI 동기화
     treeContainer.innerHTML = '';
     const rootEl = createNodeElement(treeData, 0);
     treeContainer.appendChild(rootEl);
@@ -99,10 +139,14 @@ function createNodeElement(nodeData, level) {
         content.classList.add('selected');
     }
     
-    // Apply custom color if set
+    // Apply background and text color dynamically
     if (nodeData.color) {
         content.style.backgroundColor = nodeData.color;
+    } else {
+        content.style.backgroundColor = `var(--l${level}-bg, #d1d8e0)`;
     }
+    // 텍스트 가독성을 위해 0~1단계는 흰색, 2단계 이상은 어두운 색 적용
+    content.style.color = level <= 1 ? '#ffffff' : '#333333';
 
     content.addEventListener('click', (e) => {
         // 편집 중일 때는 선택 이벤트를 무시
@@ -219,15 +263,6 @@ function setupEventListeners() {
         document.documentElement.style.setProperty('--node-gap', `${e.target.value}px`);
     });
 
-    // Level Colors
-    Object.keys(colorInputs).forEach(level => {
-        colorInputs[level].addEventListener('input', (e) => {
-            const color = e.target.value;
-            document.documentElement.style.setProperty(`--l${level}-bg`, color);
-            localStorage.setItem(`levelColor_${level}`, color);
-        });
-    });
-
     // Node Text
     nodeTextInput.addEventListener('input', (e) => {
         if (!selectedNodeId) return;
@@ -268,6 +303,7 @@ function setupEventListeners() {
         };
         node.children.push(newNode);
         saveTree();
+        renderTree(); // 화면 업데이트
         selectNode(newNode.id);
     });
 
@@ -286,6 +322,7 @@ function setupEventListeners() {
         const index = parent.children.findIndex(c => c.id === selectedNodeId);
         parent.children.splice(index + 1, 0, newNode);
         saveTree();
+        renderTree(); // 화면 업데이트
         selectNode(newNode.id);
     });
 
