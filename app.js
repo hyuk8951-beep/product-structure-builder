@@ -105,8 +105,39 @@ function createNodeElement(nodeData, level) {
     }
 
     content.addEventListener('click', (e) => {
+        // 편집 중일 때는 선택 이벤트를 무시
+        if (content.contentEditable === "true") return;
         e.stopPropagation();
         selectNode(nodeData.id);
+    });
+
+    content.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        content.contentEditable = "true";
+        content.focus();
+        
+        // 텍스트 전체 선택
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(content);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    });
+
+    content.addEventListener('blur', () => {
+        content.contentEditable = "false";
+        nodeData.text = content.textContent;
+        saveTree();
+        if (selectedNodeId === nodeData.id) {
+            updateControlsState();
+        }
+    });
+
+    content.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // 줄바꿈 방지
+            content.blur(); // 편집 종료
+        }
     });
 
     wrapper.appendChild(content);

@@ -187,6 +187,14 @@ button.danger:hover {
     box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.3);
 }
 
+/* Editing Mode */
+.node-content[contenteditable="true"] {
+    user-select: text;
+    cursor: text;
+    outline: 2px dashed #f1c40f;
+    outline-offset: 2px;
+}
+
 /* Level Colors (defaults) */
 .node-wrapper[data-level="0"] > .node-content { background-color: var(--l0-bg); }
 .node-wrapper[data-level="1"] > .node-content { background-color: var(--l1-bg); }
