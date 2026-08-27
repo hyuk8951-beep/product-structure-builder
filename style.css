@@ -1,0 +1,307 @@
+:root {
+    --node-gap: 30px;
+    --line-color: #bdc3c7;
+    --line-width: 2px;
+    
+    --l0-bg: #2d2d64;
+    --l1-bg: #9b82c8;
+    --l2-bg: #a5b1c2;
+    --l3-bg: #d1d8e0;
+    
+    --bg-color: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f6fa;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Header CI */
+.ci-header {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 100;
+}
+.ci-logo {
+    width: 60px;
+    height: auto;
+}
+.ci-text {
+    margin: 0;
+    color: #f59e0b;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+/* Watermark */
+.watermark {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    opacity: 0.5;
+    font-weight: bold;
+    color: #333;
+    z-index: 100;
+    pointer-events: none;
+}
+
+/* Controls */
+.controls-panel {
+    width: 300px;
+    background: #fff;
+    border-right: 1px solid #ddd;
+    padding: 20px;
+    padding-top: 80px; /* space for CI */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+    z-index: 50;
+}
+
+.control-group {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.control-group h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #555;
+    text-transform: uppercase;
+}
+
+.control-group label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #333;
+}
+
+.control-group input[type="text"] {
+    width: 60%;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 5px;
+    border: none;
+    border-radius: 4px;
+    background: #ecf0f1;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background 0.2s;
+}
+
+button:hover:not(:disabled) {
+    background: #bdc3c7;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+button.primary {
+    background: #3498db;
+    color: white;
+}
+button.primary:hover {
+    background: #2980b9;
+}
+
+button.danger {
+    background: #e74c3c;
+    color: white;
+}
+button.danger:hover {
+    background: #c0392b;
+}
+
+#selected-node-info {
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #2c3e50;
+    word-break: break-all;
+}
+
+/* Canvas Area */
+.canvas-container {
+    flex: 1;
+    overflow: auto;
+    background: var(--bg-color);
+    padding: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.tree {
+    /* To allow panning if needed, but flex centered for now */
+    padding: 20px;
+    background: var(--bg-color); /* for clean image export */
+}
+
+/* Node Styles */
+.node-content {
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-weight: 500;
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 2px solid transparent;
+    transition: transform 0.1s, border-color 0.2s;
+    user-select: none;
+    position: relative;
+    z-index: 10;
+}
+
+.node-content.selected {
+    border-color: #e74c3c;
+    transform: scale(1.05);
+    box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.3);
+}
+
+/* Level Colors (defaults) */
+.node-wrapper[data-level="0"] > .node-content { background-color: var(--l0-bg); }
+.node-wrapper[data-level="1"] > .node-content { background-color: var(--l1-bg); }
+.node-wrapper[data-level="2"] > .node-content { background-color: var(--l2-bg); color: #333; }
+.node-wrapper[data-level="3"] > .node-content { background-color: var(--l3-bg); color: #333; }
+.node-wrapper[data-level="4"] > .node-content { background-color: #ecf0f1; color: #333; } /* L4+ fallback */
+
+/* --- Tree Layout --- */
+
+/* Root Level (0) */
+.level-0-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Container for Level 1 */
+.level-1-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    padding-top: var(--node-gap);
+    position: relative;
+}
+
+/* Dropdown line from L0 */
+.level-1-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: var(--line-width);
+    height: var(--node-gap);
+    background-color: var(--line-color);
+    transform: translateX(-50%);
+}
+.level-1-container:empty::before {
+    display: none;
+}
+
+/* Level 1 Node Wrappers */
+.level-1-wrapper {
+    position: relative;
+    padding: var(--node-gap) calc(var(--node-gap) / 2) 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Horizontal Spine */
+.level-1-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    border-top: var(--line-width) solid var(--line-color);
+}
+.level-1-wrapper:first-child::before { left: 50%; }
+.level-1-wrapper:last-child::before { right: 50%; }
+.level-1-wrapper:first-child:last-child::before { display: none; }
+
+/* Dropdown to L1 node */
+.level-1-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: var(--line-width);
+    height: var(--node-gap);
+    background-color: var(--line-color);
+    transform: translateX(-50%);
+}
+
+/* Container for L2 and below (Indented Tree) */
+.sub-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: calc(var(--node-gap) / 2);
+    /* For L1, the sub-container starts under it */
+}
+
+/* Sub-level wrappers (L2, L3, ...) */
+.sub-wrapper {
+    position: relative;
+    padding-left: var(--node-gap);
+    padding-bottom: calc(var(--node-gap) / 2);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* keep them left-aligned */
+}
+
+/* The vertical spine for each sub-item */
+.sub-wrapper::before {
+    content: '';
+    position: absolute;
+    top: calc(var(--node-gap) * -0.5); /* reach up to parent bottom */
+    bottom: 0;
+    left: calc(var(--node-gap) / 2);
+    border-left: var(--line-width) solid var(--line-color);
+}
+
+/* If last child, stop vertical line at the horizontal branch */
+.sub-wrapper:last-child::before {
+    bottom: auto;
+    height: calc(16px + var(--node-gap) * 0.5); /* rough estimate to reach the horizontal branch. 16px is approx half node height */
+}
+/* If first child, it needs to connect slightly differently if parent is L1 */
+/* Actually, the top:-gap/2 handles reaching up */
+
+/* The horizontal branch */
+.sub-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 16px; /* align with middle of node (node padding 8px + line height approx 16px = 32px height, half is 16px) */
+    left: calc(var(--node-gap) / 2);
+    width: calc(var(--node-gap) / 2);
+    border-top: var(--line-width) solid var(--line-color);
+}

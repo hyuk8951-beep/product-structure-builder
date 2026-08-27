@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Structure Builder</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- html2canvas for image download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+    <!-- Header / CI -->
+    <div class="ci-header">
+        <img src="logo.png" alt="Logo" class="ci-logo">
+        <h5 class="ci-text">PPE연구팀</h5>
+    </div>
+
+    <!-- Controls Panel -->
+    <div class="controls-panel">
+        <div class="control-group">
+            <h3>간격 조절</h3>
+            <label>노드 간격: <input type="range" id="gap-slider" min="10" max="100" value="30"></label>
+        </div>
+        
+        <div class="control-group">
+            <h3>단계별 색상</h3>
+            <label>0단계 (최상위): <input type="color" id="color-l0" data-level="0" value="#2d2d64"></label>
+            <label>1단계: <input type="color" id="color-l1" data-level="1" value="#9b82c8"></label>
+            <label>2단계: <input type="color" id="color-l2" data-level="2" value="#a5b1c2"></label>
+            <label>3단계: <input type="color" id="color-l3" data-level="3" value="#d1d8e0"></label>
+        </div>
+
+        <div class="control-group selected-node-controls">
+            <h3>선택된 노드</h3>
+            <div id="selected-node-info">선택 없음</div>
+            <label>텍스트: <input type="text" id="node-text" disabled></label>
+            <label>색상 (개별 지정): <input type="color" id="node-color" disabled></label>
+            <button id="btn-clear-color" disabled>개별 색상 초기화</button>
+            <hr>
+            <button id="btn-add-child" disabled>+ 하위 항목 추가</button>
+            <button id="btn-add-sibling" disabled>+ 동급 항목 추가</button>
+            <button id="btn-delete" disabled>항목 삭제</button>
+        </div>
+
+        <div class="control-group action-buttons">
+            <button id="btn-download" class="primary">PNG 이미지 다운로드</button>
+            <button id="btn-reset" class="danger">전체 초기화</button>
+        </div>
+    </div>
+
+    <!-- Main Canvas Area -->
+    <div class="canvas-container" id="capture-area">
+        <div class="tree" id="tree-root">
+            <!-- Tree will be generated here by app.js -->
+        </div>
+    </div>
+
+    <!-- Watermark -->
+    <div class="watermark">by 황진혁</div>
+
+    <script src="app.js"></script>
+</body>
+</html>
